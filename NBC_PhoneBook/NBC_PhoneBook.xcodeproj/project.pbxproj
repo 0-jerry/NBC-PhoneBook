@@ -14,9 +14,22 @@
 		23FCA68E2D04E7D50013A36D /* NBC_PhoneBook.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NBC_PhoneBook.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		23FCA6A32D04E7D70013A36D /* Exceptions for "NBC_PhoneBook" folder in "NBC_PhoneBook" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 23FCA68D2D04E7D50013A36D /* NBC_PhoneBook */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		23FCA6902D04E7D50013A36D /* NBC_PhoneBook */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				23FCA6A32D04E7D70013A36D /* Exceptions for "NBC_PhoneBook" folder in "NBC_PhoneBook" target */,
+			);
 			path = NBC_PhoneBook;
 			sourceTree = "<group>";
 		};
