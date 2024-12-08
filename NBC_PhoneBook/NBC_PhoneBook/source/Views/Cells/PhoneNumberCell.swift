@@ -13,7 +13,7 @@ final class PhoneNumberCell: UITableViewCell {
     
     static let id: String = "PhoneNumberCell"
     
-    private var data: PhoneNumber?
+    private var data: PokePhoneNumber?
 
     // 포켓몬 이미지 뷰
     private let pokeImageView: UIImageView = {
@@ -96,7 +96,7 @@ extension PhoneNumberCell {
         
     }
     
-    func setData(_ phoneNumber: PhoneNumber) {
+    func setData(_ phoneNumber: PokePhoneNumber) {
         self.data = phoneNumber
         
         updateNameLabel(phoneNumber.name)

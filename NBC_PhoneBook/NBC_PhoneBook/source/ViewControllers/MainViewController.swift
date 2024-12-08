@@ -12,7 +12,7 @@ import SnapKit
 /// 메인 화면 ViewController
 final class MainViewController: UIViewController {
     
-    private var data: [PhoneNumber] = PhoneNumber.mockDatas
+    private var data: [PokePhoneNumber] = PokePhoneNumber.mockDatas
     
     private let tableView: UITableView = {
         let tableView = UITableView()
