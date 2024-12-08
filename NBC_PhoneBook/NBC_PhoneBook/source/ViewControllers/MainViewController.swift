@@ -12,8 +12,11 @@ import SnapKit
 /// 메인 화면 ViewController
 final class MainViewController: UIViewController {
     
+    private var data: [PhoneNumber] = PhoneNumber.mockDatas
+    
     private let tableView: UITableView = {
         let tableView = UITableView()
+        tableView.backgroundColor = .white
         
         return tableView
     }()
@@ -23,6 +26,7 @@ final class MainViewController: UIViewController {
         
         self.view.backgroundColor = .white
         configureNavigationController()
+        configureTableView()
     }
     
 }
@@ -30,26 +34,78 @@ final class MainViewController: UIViewController {
 //MARK: - NavigationController
 extension MainViewController {
     
-    //네비게이션 컨트롤러 설정 메서드
+    // 네비게이션 컨트롤러 설정 메서드
     private func configureNavigationController() {
-        self.navigationItem.title = "친구 목록"
-        self.navigationController?.navigationBar.titleTextAttributes = [.font: UIFont.systemFont(ofSize: 20, weight: .bold)]
+        guard let navigationController = self.navigationController else { return }
+        
+        let titleFont = UIFont.systemFont(ofSize: 25, weight: .bold)
+        let itemFont = UIFont.systemFont(ofSize: 21, weight: .semibold)
+        navigationController.navigationBar.titleTextAttributes = [.font: titleFont]
         
         let addButton = UIBarButtonItem(title: "추가",
                                         style: .plain,
                                         target: self,
                                         action: #selector(pushEditerView))
-        
+        addButton.setTitleTextAttributes([.font: itemFont], for: .normal)
+
+        self.title = "친구 목록"
         self.navigationItem.setRightBarButton(addButton, animated: false)
     }
     
+    // EditorViewController 푸쉬
     @objc private func pushEditerView() {
         guard let navigationController = self.navigationController else { return }
-        navigationController.pushViewController(EditorViewController(), animated: false)
+        navigationController.pushViewController(PhoneBookViewController(), animated: false)
     }
     
 }
 
-//#Preview {
-//    MainViewController()
-//}
+
+//MARK: - TableViewController
+extension MainViewController: UITableViewDataSource, UITableViewDelegate  {
+    
+    // TableView 설정
+    private func configureTableView() {
+        self.view.addSubview(tableView)
+        
+        tableView.dataSource = self
+        tableView.delegate = self
+        
+        tableView.snp.makeConstraints {
+            $0.bottom.leading.trailing.equalToSuperview().inset(20)
+            $0.top.equalTo(self.view.safeAreaLayoutGuide).inset(30)
+        }
+        
+        registerCell()
+    }
+    
+    // TableViewCell 등록
+    private func registerCell() {
+        self.tableView.register(PhoneNumberCell.self,
+                                forCellReuseIdentifier: PhoneNumberCell.id)
+    }
+    
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return data.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let phoneNumberCell = tableView.dequeueReusableCell(withIdentifier: PhoneNumberCell.id, for: indexPath) as? PhoneNumberCell else { return UITableViewCell() }
+        
+        let phoneNumber = data[indexPath.row]
+        phoneNumberCell.setData(phoneNumber)
+        
+        return phoneNumberCell
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        90
+    }
+    
+}
+
+
+#Preview {
+    MainViewController()
+}
