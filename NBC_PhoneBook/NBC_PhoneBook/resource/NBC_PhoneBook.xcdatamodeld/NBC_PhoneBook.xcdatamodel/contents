@@ -1,13 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23231" systemVersion="24A335" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
-    <entity name="PhoneBook" representedClassName="PhoneBook" syncable="YES">
+    <entity name="PokePhoneNumberData" representedClassName="PokePhoneNumberData" syncable="YES">
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="name" optional="YES" attributeType="String"/>
         <attribute name="number" optional="YES" attributeType="String"/>
-        <attribute name="pokeCode" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
-    </entity>
-    <entity name="PhoneNumber" representedClassName="PhoneNumber" syncable="YES" codeGenerationType="class">
-        <attribute name="centerNumber" optional="YES" attributeType="String"/>
-        <attribute name="firstNumber" optional="YES" attributeType="String"/>
-        <attribute name="lastNumber" optional="YES" attributeType="String"/>
+        <attribute name="pokeImage" optional="YES" attributeType="Binary"/>
     </entity>
 </model>

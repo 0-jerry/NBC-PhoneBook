@@ -7,6 +7,7 @@
 
 import UIKit
 
+import Alamofire
 import SnapKit
 
 final class PhoneNumberCell: UITableViewCell {
@@ -19,11 +20,13 @@ final class PhoneNumberCell: UITableViewCell {
     private let pokeImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.layer.borderWidth = 1
-        imageView.backgroundColor = .white
-        imageView.image = UIImage(systemName: "pencil.circle.fill")
-        imageView.layer.cornerRadius = 40
+        imageView.layer.cornerRadius = 35
         imageView.clipsToBounds = true
         imageView.contentMode = .scaleAspectFit
+        
+        imageView.backgroundColor = .clear
+        
+        imageView.image = UIImage(systemName: "pencil.circle.fill")
         
         return imageView
     }()
@@ -36,26 +39,34 @@ final class PhoneNumberCell: UITableViewCell {
         stackView.distribution = .fillEqually
         stackView.spacing = 5
         
+        stackView.backgroundColor = .clear
+        
         return stackView
     }()
     
     // 이름 라벨 뷰
     private let nameLabel: UILabel = {
         let label = UILabel()
-        label.text = "name"
-        label.backgroundColor = .clear
-        label.font = UIFont.systemFont(ofSize: 23, weight: .medium)
+        label.font = UIFont.systemFont(ofSize: 20,
+                                       weight: .medium)
 
+        label.backgroundColor = .clear
+
+        label.text = "name"
+        
         return label
     }()
     
     // 이름 라벨 뷰
     private let numberLabel: UILabel = {
         let label = UILabel()
-        label.text = "010-0000-0000"
         label.backgroundColor = .clear
-        label.font = UIFont.systemFont(ofSize: 20, weight: .medium)
         
+        label.font = UIFont.systemFont(ofSize: 17,
+                                       weight: .regular)
+        
+        label.text = "010-0000-0000"
+
         return label
     }()
     
@@ -73,6 +84,7 @@ final class PhoneNumberCell: UITableViewCell {
 extension PhoneNumberCell {
     
     private func configureUI() {
+        self.backgroundColor = .clear
         
         [pokeImageView,
          labelStackView
@@ -83,15 +95,15 @@ extension PhoneNumberCell {
         ].forEach { labelStackView.addArrangedSubview($0) }
         
         pokeImageView.snp.makeConstraints {
-            $0.width.height.equalTo(80)
-            $0.leading.equalToSuperview().inset(10)
+            $0.width.height.equalTo(70)
+            $0.leading.equalToSuperview().inset(5)
             $0.centerY.equalToSuperview()
         }
         
         labelStackView.snp.makeConstraints {
             $0.centerY.trailing.equalToSuperview()
             $0.top.bottom.equalToSuperview().inset(10)
-            $0.leading.equalTo(pokeImageView.snp.trailing).offset(30)
+            $0.leading.equalTo(pokeImageView.snp.trailing).offset(80)
         }
         
     }
@@ -99,9 +111,6 @@ extension PhoneNumberCell {
     func setData(_ phoneNumber: PokePhoneNumber) {
         self.data = phoneNumber
         
-        updateNameLabel(phoneNumber.name)
-        updateNumberLabel(phoneNumber.phoneNumber)
-        updatePokeImage(phoneNumber.pokeNumber)
     }
     
     private func updateNameLabel(_ name: String) {

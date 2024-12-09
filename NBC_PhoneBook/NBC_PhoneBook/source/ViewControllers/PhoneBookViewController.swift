@@ -7,6 +7,7 @@
 
 import UIKit
 
+import Alamofire
 import SnapKit
 
 /// 전화번호 생성 화면 ViewController
@@ -54,4 +55,16 @@ extension PhoneBookViewController {
     private func saveData() {
         
     }
+    
+}
+
+
+extension PhoneBookViewController {
+    
+    private func fetchData<T: Decodable>(url: URL, completion: @escaping (Result<T, AFError>) -> Void) {
+        AF.request(url).responseDecodable(of: T.self) { response in
+            completion(response.result)
+        }
+    }
+    
 }

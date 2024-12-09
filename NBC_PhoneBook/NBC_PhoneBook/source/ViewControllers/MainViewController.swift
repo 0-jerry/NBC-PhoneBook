@@ -7,12 +7,22 @@
 
 import UIKit
 
+import Alamofire
+import CoreData
 import SnapKit
 
 /// 메인 화면 ViewController
 final class MainViewController: UIViewController {
     
-    private var data: [PokePhoneNumber] = PokePhoneNumber.mockDatas
+    private var data: [PokePhoneNumber] = []
+    
+    private lazy var phoneBookManager: PhoneBookManager? = {
+        
+        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return nil }
+        let container = appDelegate.persistentContainer
+        
+        return PhoneBookManager(container: container)
+    }()
     
     private let tableView: UITableView = {
         let tableView = UITableView()
@@ -32,6 +42,7 @@ final class MainViewController: UIViewController {
 }
 
 //MARK: - NavigationController
+
 extension MainViewController {
     
     // 네비게이션 컨트롤러 설정 메서드
@@ -45,7 +56,7 @@ extension MainViewController {
         let addButton = UIBarButtonItem(title: "추가",
                                         style: .plain,
                                         target: self,
-                                        action: #selector(pushEditerView))
+                                        action: #selector(pushPhoneBookViewController))
         addButton.setTitleTextAttributes([.font: itemFont], for: .normal)
 
         self.title = "친구 목록"
@@ -53,7 +64,7 @@ extension MainViewController {
     }
     
     // EditorViewController 푸쉬
-    @objc private func pushEditerView() {
+    @objc private func pushPhoneBookViewController() {
         guard let navigationController = self.navigationController else { return }
         navigationController.pushViewController(PhoneBookViewController(), animated: false)
     }
@@ -62,6 +73,7 @@ extension MainViewController {
 
 
 //MARK: - TableViewController
+
 extension MainViewController: UITableViewDataSource, UITableViewDelegate  {
     
     // TableView 설정
@@ -85,11 +97,12 @@ extension MainViewController: UITableViewDataSource, UITableViewDelegate  {
                                 forCellReuseIdentifier: PhoneNumberCell.id)
     }
     
-    
+    // 셀 수
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return data.count
     }
     
+    // TableViewCell 로드
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let phoneNumberCell = tableView.dequeueReusableCell(withIdentifier: PhoneNumberCell.id, for: indexPath) as? PhoneNumberCell else { return UITableViewCell() }
         
@@ -99,10 +112,26 @@ extension MainViewController: UITableViewDataSource, UITableViewDelegate  {
         return phoneNumberCell
     }
     
+    // TableViewCell 사이즈
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        90
+        80
     }
     
+
+    
+}
+
+
+//MARK: - Set Data
+
+extension MainViewController {
+    
+    // 데이터 설정 -> CoreData 로드
+    private func configureData() {
+        
+    }
+    
+
 }
 
 
