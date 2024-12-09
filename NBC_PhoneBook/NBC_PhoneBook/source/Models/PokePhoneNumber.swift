@@ -14,7 +14,23 @@ struct PokePhoneNumber {
     let name: String
     let phoneNumber: String
     
-    static let mockDatas: [PokePhoneNumber] = [].compactMap { $0 }
+    static let mockDatas: [PokePhoneNumber] = {
+        var mock: [PokePhoneNumber] = []
+        
+        (0...9).forEach {
+            if let pngURL = PokeData(from: $0).pngURL,
+               let data = try? Data(contentsOf: pngURL) {
+                let phoneNumber = MobilePhoneNumber("010" + String(repeating: "\($0)", count: 8)).form()
+                let pokePhoneNumber = PokePhoneNumber(pokeImage: data,
+                                                      name: "이재영 \($0)",
+                                                      phoneNumber: phoneNumber)
+                
+                mock.append(pokePhoneNumber)
+            }
+        }
+        
+        return mock
+    }()
     
     init(id: UUID = UUID(), pokeImage: Data, name: String, phoneNumber: String) {
         self.id = id

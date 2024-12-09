@@ -19,11 +19,17 @@ struct PokeData {
     
     /// Cora Data 에서 불러올 때 사용
     init(from number: Int) {
-        self.number = number
+        switch number {
+        case 1...1000:
+            self.number = number
+        default:
+            self.number = 132
+        }
     }
     
     /// 랜덤 생성 
     init() {
         self.number = (1...1000).randomElement() ?? 132
     }
+    
 }

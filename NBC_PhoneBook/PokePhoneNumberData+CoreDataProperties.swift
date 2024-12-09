@@ -37,6 +37,26 @@ extension PokePhoneNumberData {
         self.setValue(pokePhoneNumber.pokeImage, forKey: PokePhoneNumberData.Key.pokeImage)
     }
     
+    func pokePhoneNumber() -> PokePhoneNumber? {
+        guard let id,
+              let pokeImage,
+              let name,
+              let number else { return nil}
+        
+        return PokePhoneNumber(id: id,
+                               pokeImage: pokeImage,
+                               name: name,
+                               phoneNumber: number)
+    }
+    
+    func update(_ pokePhoneNumber: PokePhoneNumber) {
+        guard isSame(pokePhoneNumber) else { return }
+        setPokePhoneNumber(pokePhoneNumber)
+    }
+    
+    func isSame(_ pokePhoneNumber: PokePhoneNumber) -> Bool {
+        return id == pokePhoneNumber.id
+    }
 }
 
 extension PokePhoneNumberData : Identifiable {

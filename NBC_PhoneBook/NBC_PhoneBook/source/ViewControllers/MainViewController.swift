@@ -13,10 +13,9 @@ import CoreData
 /// 메인 화면 ViewController
 final class MainViewController: UIViewController {
     
-    private var data: [PokePhoneNumber] = []
+    private var data: [PokePhoneNumber] = PokePhoneNumber.mockDatas
     
     private lazy var phoneBookManager: PhoneBookManager? = {
-        
         guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else { return nil }
         let container = appDelegate.persistentContainer
         
