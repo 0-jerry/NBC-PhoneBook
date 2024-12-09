@@ -111,6 +111,9 @@ extension PhoneNumberCell {
     func setData(_ phoneNumber: PokePhoneNumber) {
         self.data = phoneNumber
         
+        updateNameLabel(phoneNumber.name)
+        updateNumberLabel(phoneNumber.phoneNumber)
+        updatePokeImage(phoneNumber.pokeImage)
     }
     
     private func updateNameLabel(_ name: String) {
@@ -121,8 +124,9 @@ extension PhoneNumberCell {
         numberLabel.text = phoneNumber
     }
     
-    private func updatePokeImage(_ pokeNumber: Int) {
-        
+    private func updatePokeImage(_ pokeImage: Data) {
+        guard let pokeImage = UIImage(data: pokeImage) else { return }
+        pokeImageView.image = pokeImage
     }
     
 }

@@ -47,8 +47,6 @@ class PhoneBookManager {
     func read() -> [PokePhoneNumber]? {
         var pokePhoneNumbers: [PokePhoneNumber] = []
         
-        
-        
         return !pokePhoneNumbers.isEmpty ? pokePhoneNumbers : nil
     }
     

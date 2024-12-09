@@ -9,7 +9,6 @@ import UIKit
 
 import Alamofire
 import CoreData
-import SnapKit
 
 /// 메인 화면 ViewController
 final class MainViewController: UIViewController {

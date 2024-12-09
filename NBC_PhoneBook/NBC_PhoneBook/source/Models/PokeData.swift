@@ -10,9 +10,9 @@ import Foundation
 struct PokeData {
     
     private let number: Int
-    
-    private var pngURL: URL? {
-        let url = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/\(self.number).png"
+
+    var pngURL: URL? {
+        let url = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/\(self.number).png"
         
         return URL(string: url)
     }
