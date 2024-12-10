@@ -7,11 +7,18 @@
 
 import UIKit
 
-//import Alamofire
 import SnapKit
+
+let imageData = UIImage(systemName: "square.and.pencil.circle")!.pngData()!
 
 /// 전화번호 생성 화면 ViewController
 final class PhoneBookViewController: UIViewController {
+    
+    private weak var phoneBookManager = PhoneBookManager.shared
+    
+    private var data: PhoneNumber?
+    
+    var onPop: (() -> Void)?
     
     private let pokeImageStackView: UIStackView = {
         let stackView = UIStackView()
@@ -28,11 +35,12 @@ final class PhoneBookViewController: UIViewController {
     private let pokeImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
+        
         imageView.layer.cornerRadius = 100
         imageView.layer.borderWidth = 3
         imageView.layer.borderColor = UIColor.black.cgColor
-        imageView.image = UIImage(systemName: "pencil.circle")
         imageView.clipsToBounds = true
+        
         imageView.backgroundColor = .white
         
         return imageView
@@ -41,8 +49,10 @@ final class PhoneBookViewController: UIViewController {
     private let pokeRandomButton: UIButton = {
         let button = UIButton()
         button.setTitle("랜덤 이미지 생성", for: .normal)
-        button.backgroundColor = .systemGray5
         button.setTitleColor(.black, for: .normal)
+        button.setTitleColor(.white, for: .highlighted)
+        button.backgroundColor = .systemGray5
+        button.contentMode = .center
         
         button.layer.borderColor = UIColor.black.cgColor
         button.layer.borderWidth = 1
@@ -102,7 +112,10 @@ final class PhoneBookViewController: UIViewController {
         configureUI()
         configureNavigationController()
         
-        startImage()
+        if pokeImageView.image == nil {
+            defaultImage()
+        }
+        
         self.pokeRandomButton.addTarget(self,
                                         action: #selector(randomButtonTapped),
                                         for: .touchUpInside)
@@ -114,7 +127,7 @@ final class PhoneBookViewController: UIViewController {
 extension PhoneBookViewController {
     
     private func configureUI() {
-                
+        
         [
             pokeImageStackView,
             textViewStackView
@@ -131,7 +144,7 @@ extension PhoneBookViewController {
         ].forEach { textViewStackView.addArrangedSubview($0) }
         
         pokeImageStackView.snp.makeConstraints {
-            $0.top.equalTo(view.safeAreaLayoutGuide).inset(30)
+            $0.top.equalTo(view.safeAreaLayoutGuide).offset(30)
             $0.height.equalTo(250)
             $0.width.equalTo(200)
             $0.centerX.equalToSuperview()
@@ -139,10 +152,6 @@ extension PhoneBookViewController {
         
         pokeImageView.snp.makeConstraints {
             $0.width.height.equalTo(200)
-        }
-        
-        pokeRandomButton.snp.makeConstraints {
-            $0.leading.trailing.equalToSuperview().inset(30)
         }
         
         textViewStackView.snp.makeConstraints {
@@ -161,10 +170,16 @@ extension PhoneBookViewController {
     private func configureNavigationController() {
         guard let navigationController = self.navigationController else { return }
         
-        let titleFont = UIFont.systemFont(ofSize: 25, weight: .bold)
+        let titleFont = UIFont.systemFont(ofSize: 23, weight: .bold)
         let itemFont = UIFont.systemFont(ofSize: 21, weight: .semibold)
         
         navigationController.navigationBar.titleTextAttributes = [.font: titleFont]
+        
+        let titleLabel = UILabel()
+        titleLabel.text = "연락처 추가"
+        titleLabel.font = titleFont
+        
+        self.navigationItem.titleView = titleLabel
         
         self.navigationItem.title = "연락처 추가"
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "적용",
@@ -181,11 +196,41 @@ extension PhoneBookViewController {
     }
     
     @objc private func applyButtonTapped() {
-        self.dismiss(animated: false, completion: saveData)
+        saveData()
+        guard let navigationController else { return }
+        onPop?()
+        let _ = navigationController.popViewController(animated: false)
     }
     
     private func saveData() {
+        guard let image = self.pokeImageView.image?.pngData(),
+              let name = nameTextView.text,
+              let number = phoneNumberTextView.text,
+              let phoneBookManager else { return }
         
+        let id = data?.id ?? UUID()
+        
+        let phoneNumber = PhoneNumber(id: id,
+                                      pokeImage: image,
+                                      name: name,
+                                      number: number)
+        
+        if data == nil {
+            phoneBookManager.creat(phoneNumber)
+            self.data = phoneNumber
+        } else {
+            phoneBookManager.update(phoneNumber)
+        }
+    }
+    
+    func setData(_ phoneNumber: PhoneNumber) {
+        self.data = phoneNumber
+        if let image = UIImage(data: phoneNumber.pokeImage) {
+            self.pokeImageView.image = image
+        }
+        
+        self.nameTextView.text = phoneNumber.name
+        self.phoneNumberTextView.text = phoneNumber.phoneNumber
     }
     
 }
@@ -194,26 +239,30 @@ extension PhoneBookViewController {
 extension PhoneBookViewController {
     
     //처음은 메타몽
-    private func startImage() {
-        guard let pngURL = PokeData(from: 132).pngURL,
-              let data = try? Data(contentsOf: pngURL),
-              let image = UIImage(data: data) else { return }
-        
-        DispatchQueue.main.async {
-            self.pokeImageView.image = image
-        }
+    private func defaultImage() {
+        fetchPokeImage(PokeData(from: 132))
     }
     
     
     //TODO: URLSession or Alamofire 로 API 통신
     @objc private func randomButtonTapped() {
-        guard let pngURL = PokeData().pngURL,
-              let data = try? Data(contentsOf: pngURL),
-              let image = UIImage(data: data) else { return }
-        
-        DispatchQueue.main.async {
-            self.pokeImageView.image = image
-        }
+        fetchPokeImage(PokeData())
+    }
+    
+    private func fetchPokeImage(_ pokeData: PokeData) {
+        guard let pngURL = pokeData.pngURL else { return }
+        let urlRequest = URLRequest(url: pngURL)
+        URLSession.shared.dataTask(with: urlRequest) { data, response, error in
+            guard error == nil,
+                  let data,
+                  let image = UIImage(data: data),
+                  let response = response as? HTTPURLResponse,
+                  (200..<300).contains(response.statusCode) else { return }
+            
+            DispatchQueue.main.async {
+                self.pokeImageView.image = image
+            }
+        }.resume()
     }
     
 }

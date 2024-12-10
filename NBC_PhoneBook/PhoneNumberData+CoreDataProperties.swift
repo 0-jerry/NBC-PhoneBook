@@ -46,7 +46,7 @@ extension PhoneNumberData {
         return PhoneNumber(id: id,
                            pokeImage: pokeImage,
                            name: name,
-                           phoneNumber: number)
+                           number: number)
     }
     
     func update(_ phoneNumber: PhoneNumber) {
