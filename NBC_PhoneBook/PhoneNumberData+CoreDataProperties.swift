@@ -34,7 +34,7 @@ extension PhoneNumberData {
         self.setValue(phoneNumber.id, forKey: PhoneNumberData.Key.id)
         self.setValue(phoneNumber.pokeImage, forKey: PhoneNumberData.Key.pokeImage)
         self.setValue(phoneNumber.name, forKey: PhoneNumberData.Key.name)
-        self.setValue(phoneNumber.phoneNumber, forKey: PhoneNumberData.Key.number)
+        self.setValue(phoneNumber.number, forKey: PhoneNumberData.Key.number)
     }
     
     func convertTo() -> PhoneNumber? {

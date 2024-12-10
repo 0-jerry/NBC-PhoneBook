@@ -26,8 +26,6 @@ final class MainViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        //        phoneBookManager.reset()
-        
         self.view.backgroundColor = .white
         configureData()
         configureNavigationController()
@@ -39,9 +37,10 @@ final class MainViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        tableView.reloadData()
+        configureData()
     }
     
+    //데이터 설정 메서드
     private func configureData() {
         guard let datas = phoneBookManager.read() else { return }
         self.datas = datas
@@ -74,22 +73,22 @@ extension MainViewController {
         
         self.navigationItem.titleView = titleLabel
         self.navigationItem.setRightBarButton(addButton, animated: false)
-        
     }
     
-    // EditorViewController 푸쉬
+    // PhoneBookViewController 푸쉬
     @objc private func pushPhoneBookViewController() {
         guard let navigationController = self.navigationController else { return }
-        
-        let phoneBookViewController = PhoneBookViewController()
-        
-        phoneBookViewController.onApply = { [weak self] in
-            self?.configureData()
-        }
-        
+        let phoneBookViewController = makePhoneBookViewController(nil)
         navigationController.pushViewController(phoneBookViewController, animated: false)
     }
     
+    // PhoneBookViewController 설정 및 반환
+    private func makePhoneBookViewController(_ data: PhoneNumber?) -> PhoneBookViewController {
+        let phoneBookViewController = PhoneBookViewController()
+        if let data { phoneBookViewController.setData(data) }
+    
+        return phoneBookViewController
+    }
 }
 
 
@@ -123,9 +122,12 @@ extension MainViewController: UITableViewDataSource, UITableViewDelegate  {
         return datas.count
     }
     
-    // TableViewCell 로드
+    // 셀 dequeue
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let phoneNumberCell = tableView.dequeueReusableCell(withIdentifier: PhoneNumberCell.id, for: indexPath) as? PhoneNumberCell else { return UITableViewCell() }
+        guard let phoneNumberCell = tableView.dequeueReusableCell(withIdentifier: PhoneNumberCell.id,
+                                                                  for: indexPath) as? PhoneNumberCell else {
+            return UITableViewCell()
+        }
         
         let phoneNumber = datas[indexPath.row]
         phoneNumberCell.setData(phoneNumber)
@@ -138,16 +140,18 @@ extension MainViewController: UITableViewDataSource, UITableViewDelegate  {
         80
     }
     
+    // 셀 선택시 실행
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard let phoneNumberCell = tableView.cellForRow(at: indexPath) as? PhoneNumberCell,
               let data = phoneNumberCell.data,
-              let navigationController else { return }
+              let navigationController = self.navigationController else { return }
         
-        let phoneBookViewController = PhoneBookViewController()
-        phoneBookViewController.setData(data)
+        let phoneBookViewController = makePhoneBookViewController(data)
+        
         navigationController.pushViewController(phoneBookViewController, animated: false)
     }
     
+    // 셀 수정 (삭제)
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             let data = datas[indexPath.row]
@@ -156,20 +160,6 @@ extension MainViewController: UITableViewDataSource, UITableViewDelegate  {
         }
     }
 }
-
-
-//MARK: - Set Data
-
-extension MainViewController {
-    //
-    //    // 데이터 설정 -> CoreData 로드
-    //    private func configureData() {
-    //
-    //    }
-    
-    
-}
-
 
 #Preview {
     MainViewController()

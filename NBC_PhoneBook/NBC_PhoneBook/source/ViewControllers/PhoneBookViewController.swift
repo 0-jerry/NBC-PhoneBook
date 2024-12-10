@@ -10,25 +10,36 @@ import UIKit
 import SnapKit
 
 /*
- TODO: 리팩토링
- 0. 코드 정리
- 1. 데이터 로드 구조화
- 2.
+ FIXME: 리팩토링
+ 1. 데이터 형태 수정? -> Core Data에 이미지를 저장하는 것은 잘못된 것 같다.
+                     그렇다고 번호를 통해 매번 로드해야할까? 캐싱? Kingfisher
+ 
+ 2. 
+ 
+ 2. 코드 정리
  3. VC 역할 분리
  4. 메서드 분리
  5. 모델 형태 수정
  6. 델리게이터 패턴 만들어보기
-*/
+ 
+ TODO: 추가 기능
+ 1. 적용버튼 비활성화
+ */
 
 /// 전화번호 생성 화면 ViewController
 final class PhoneBookViewController: UIViewController {
     
     private let phoneBookManager = PhoneBookManager.shared
-    
     private var data: PhoneNumber?
+    private var haveData: Bool { self.data != nil }
+    private var isSet: Bool {
+        guard pokeImageView.image != nil,
+              !nameTextView.text.isEmpty,
+              !phoneNumberTextView.text.isEmpty else { return false }
+        return true
+    }
         
-    var onApply: (() -> Void)?
-    
+    // 포켓몬 이미지, 랜덤 이미지 생성 버튼
     private let pokeImageStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .vertical
@@ -41,12 +52,13 @@ final class PhoneBookViewController: UIViewController {
         return stackView
     }()
     
+    // 포켓몬 이미지
     private let pokeImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
         
         imageView.layer.cornerRadius = 100
-        imageView.layer.borderWidth = 3
+        imageView.layer.borderWidth = 1
         imageView.layer.borderColor = UIColor.black.cgColor
         imageView.clipsToBounds = true
         
@@ -55,12 +67,13 @@ final class PhoneBookViewController: UIViewController {
         return imageView
     }()
     
+    // 랜덤 이미지 생성 버튼
     private let pokeRandomButton: UIButton = {
         let button = UIButton()
         button.setTitle("랜덤 이미지 생성", for: .normal)
         button.setTitleColor(.black, for: .normal)
-        button.setTitleColor(.white, for: .highlighted)
-        button.backgroundColor = .systemGray5
+        button.setTitleColor(.darkGray, for: .highlighted)
+        button.backgroundColor = .lightGray
         button.contentMode = .center
         
         button.layer.borderColor = UIColor.black.cgColor
@@ -70,6 +83,7 @@ final class PhoneBookViewController: UIViewController {
         return button
     }()
     
+    // 이름 텍스트 뷰, 번호 텍스트 뷰
     private let textViewStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .vertical
@@ -80,48 +94,20 @@ final class PhoneBookViewController: UIViewController {
         return stackView
     }()
     
-    private let nameTextView: UITextView = {
-        let textView = UITextView()
-        textView.textContentType = .name
-        textView.font = .systemFont(ofSize: 17, weight: .regular)
-        textView.textColor = .black
-        textView.text = "이름"
-        
-        textView.layer.cornerRadius = 8
-        textView.layer.borderColor = UIColor.lightGray.cgColor
-        textView.layer.borderWidth = 2
-        
-        textView.isScrollEnabled = false
-        textView.isEditable = true
-        
-        return textView
-    }()
+    // 이름 텍스트 뷰
+    private lazy var nameTextView: UITextView = inputTextView()
     
-    private let phoneNumberTextView: UITextView = {
-        let textView = UITextView()
-        textView.textContentType = .telephoneNumber
-        textView.font = .systemFont(ofSize: 17, weight: .regular)
-        textView.textColor = .black
-        textView.text = "전화번호"
-        
-        textView.layer.cornerRadius = 8
-        textView.layer.borderColor = UIColor.lightGray.cgColor
-        textView.layer.borderWidth = 2
-        
-        textView.isScrollEnabled = false
-        textView.isEditable = true
-        
-        return textView
-    }()
+    // 번호 텍스트 뷰
+    private lazy var phoneNumberTextView: UITextView = inputTextView()
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        self.view.backgroundColor = .white
         configureUI()
         configureNavigationController()
         
-        if pokeImageView.image == nil {
+        if !haveData {
             defaultImage()
         }
         
@@ -136,6 +122,8 @@ final class PhoneBookViewController: UIViewController {
 extension PhoneBookViewController {
     
     private func configureUI() {
+        
+        view.backgroundColor = .white
         
         [
             pokeImageStackView,
@@ -180,7 +168,6 @@ extension PhoneBookViewController {
         guard let navigationController = self.navigationController else { return }
         
         let titleFont = UIFont.systemFont(ofSize: 23, weight: .bold)
-        let itemFont = UIFont.systemFont(ofSize: 21, weight: .semibold)
         
         navigationController.navigationBar.titleTextAttributes = [.font: titleFont]
         
@@ -189,41 +176,25 @@ extension PhoneBookViewController {
         titleLabel.font = titleFont
         
         self.navigationItem.titleView = titleLabel
-        
-        self.navigationItem.title = "연락처 추가"
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "적용",
                                                                  style: .plain,
                                                                  target: self,
                                                                  action: #selector(applyButtonTapped))
         
-        navigationItem.backBarButtonItem?.setTitleTextAttributes([.font: itemFont],
-                                                                 for: .normal)
-        
-        navigationItem.rightBarButtonItem?.setTitleTextAttributes([.font: itemFont],
-                                                                  for: .normal)
-        
     }
     
     @objc private func applyButtonTapped() {
         saveData()
+        
         guard let navigationController else { return }
-        onApply?()
         let _ = navigationController.popViewController(animated: false)
     }
     
+    // PhoneBookManager 에 데이터 저장
     private func saveData() {
-        guard let image = self.pokeImageView.image?.pngData(),
-              let name = nameTextView.text,
-              let number = phoneNumberTextView.text else { return }
-        
-        let id = data?.id ?? UUID()
-        
-        let phoneNumber = PhoneNumber(id: id,
-                                      pokeImage: image,
-                                      name: name,
-                                      number: number)
-        
-        if data == nil {
+        guard let phoneNumber = currentPhoneNumber() else { return }
+
+        if !haveData {
             phoneBookManager.creat(phoneNumber)
             self.data = phoneNumber
         } else {
@@ -231,32 +202,51 @@ extension PhoneBookViewController {
         }
     }
     
-    func setData(_ phoneNumber: PhoneNumber) {
-        self.data = phoneNumber
-        if let image = UIImage(data: phoneNumber.pokeImage) {
-            self.pokeImageView.image = image
-        }
+    // 입력 데이터를 PhoneNumber로 반환
+    private func currentPhoneNumber() -> PhoneNumber? {
+        guard isSet,
+              let pngData = pokeImageView.image?.pngData(),
+              let name = nameTextView.text,
+              let number = phoneNumberTextView.text else { return nil }
         
-        self.nameTextView.text = phoneNumber.name
-        self.phoneNumberTextView.text = phoneNumber.phoneNumber
+        let id = data?.id ?? UUID()
+        let numberStr = MobilePhoneNumber(number).form()
+        
+        return PhoneNumber(id: id,
+                           pokeImage: pngData,
+                           name: name,
+                           number: numberStr)
+    }
+    
+    func setData(_ phoneNumber: PhoneNumber) {
+        guard let image = UIImage(data: phoneNumber.pokeImage) else { return }
+        
+        self.data = phoneNumber
+        
+        DispatchQueue.main.async {
+            self.pokeImageView.image = image
+            self.nameTextView.text = phoneNumber.name
+            self.phoneNumberTextView.text = phoneNumber.number
+        }
     }
     
 }
 
+
 //TODO: URLSession or Alamofire 로 API 통신
 extension PhoneBookViewController {
     
-    //처음은 메타몽
+    //데이터가 없을 경우 메타몽 설정
     private func defaultImage() {
         fetchPokeImage(PokeData(from: 132))
     }
-    
     
     //TODO: URLSession or Alamofire 로 API 통신
     @objc private func randomButtonTapped() {
         fetchPokeImage(PokeData())
     }
     
+    // 이미지 요청 메서드
     private func fetchPokeImage(_ pokeData: PokeData) {
         guard let pngURL = pokeData.pngURL else { return }
         let urlRequest = URLRequest(url: pngURL)
@@ -272,6 +262,25 @@ extension PhoneBookViewController {
                 self.pokeImageView.image = image
             }
         }.resume()
+    }
+    
+    
+    // 재사용 텍스트 뷰 (이름, 번호)
+    private func inputTextView() -> UITextView {
+        let textView = UITextView()
+        textView.textContentType = .telephoneNumber
+        textView.font = .systemFont(ofSize: 17, weight: .regular)
+        textView.textColor = .black
+        textView.text = nil
+        
+        textView.layer.borderColor = UIColor.lightGray.cgColor
+        textView.layer.borderWidth = 1
+        textView.layer.cornerRadius = 8
+
+        textView.isScrollEnabled = false
+        textView.isEditable = true
+        
+        return textView
     }
     
 }

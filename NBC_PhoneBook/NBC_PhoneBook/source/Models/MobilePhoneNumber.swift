@@ -45,7 +45,7 @@ struct MobilePhoneNumber {
             centerNumber,
             lastNumber
         ].filter { !$0.isEmpty }
-            .joined(separator: seperator)
+         .joined(separator: seperator)
     }
     
 }

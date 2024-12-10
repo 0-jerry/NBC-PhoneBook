@@ -10,8 +10,10 @@ import UIKit
 import CoreData
 
 /// CRUD
+/// API 모델 이미지 -> 셀 이미지 캐시.
+/// 킹피셔 이미지 캐싱.
+///
 class PhoneBookManager {
-    
     static let shared = PhoneBookManager()
     
     private let container: NSPersistentContainer
@@ -60,6 +62,7 @@ class PhoneBookManager {
         phoneNumberDatas.forEach {
             if $0.isSame(phoneNumber) { container.viewContext.delete($0) }
         }
+        
         do {
             try save()
         } catch let error {
@@ -70,9 +73,8 @@ class PhoneBookManager {
     func reset() {
         guard let phoneNumberDatas = phoneNumberDatas() else { return }
         
-        phoneNumberDatas.forEach {
-            container.viewContext.delete($0)
-        }
+        phoneNumberDatas.forEach { container.viewContext.delete($0) }
+        
         do {
             try save()
         } catch let error {
