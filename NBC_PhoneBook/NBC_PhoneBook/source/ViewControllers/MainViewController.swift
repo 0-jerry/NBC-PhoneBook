@@ -15,7 +15,7 @@ final class MainViewController: UIViewController {
     
     private var datas: [PhoneNumber] = []
     
-    private weak var phoneBookManager = PhoneBookManager.shared
+    private let phoneBookManager = PhoneBookManager.shared
     
     private let tableView: UITableView = {
         let tableView = UITableView()
@@ -43,7 +43,7 @@ final class MainViewController: UIViewController {
     }
     
     private func configureData() {
-        guard let datas = phoneBookManager?.read() else { return }
+        guard let datas = phoneBookManager.read() else { return }
         self.datas = datas
         self.tableView.reloadData()
     }
@@ -83,7 +83,7 @@ extension MainViewController {
         
         let phoneBookViewController = PhoneBookViewController()
         
-        phoneBookViewController.onPop = { [weak self] in
+        phoneBookViewController.onApply = { [weak self] in
             self?.configureData()
         }
         
@@ -151,7 +151,7 @@ extension MainViewController: UITableViewDataSource, UITableViewDelegate  {
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             let data = datas[indexPath.row]
-            phoneBookManager?.delete(data)
+            phoneBookManager.delete(data)
             configureData()
         }
     }

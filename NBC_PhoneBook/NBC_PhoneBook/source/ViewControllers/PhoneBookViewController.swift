@@ -9,16 +9,25 @@ import UIKit
 
 import SnapKit
 
-let imageData = UIImage(systemName: "square.and.pencil.circle")!.pngData()!
+/*
+ TODO: 리팩토링
+ 0. 코드 정리
+ 1. 데이터 로드 구조화
+ 2.
+ 3. VC 역할 분리
+ 4. 메서드 분리
+ 5. 모델 형태 수정
+ 6. 델리게이터 패턴 만들어보기
+*/
 
 /// 전화번호 생성 화면 ViewController
 final class PhoneBookViewController: UIViewController {
     
-    private weak var phoneBookManager = PhoneBookManager.shared
+    private let phoneBookManager = PhoneBookManager.shared
     
     private var data: PhoneNumber?
-    
-    var onPop: (() -> Void)?
+        
+    var onApply: (() -> Void)?
     
     private let pokeImageStackView: UIStackView = {
         let stackView = UIStackView()
@@ -198,15 +207,14 @@ extension PhoneBookViewController {
     @objc private func applyButtonTapped() {
         saveData()
         guard let navigationController else { return }
-        onPop?()
+        onApply?()
         let _ = navigationController.popViewController(animated: false)
     }
     
     private func saveData() {
         guard let image = self.pokeImageView.image?.pngData(),
               let name = nameTextView.text,
-              let number = phoneNumberTextView.text,
-              let phoneBookManager else { return }
+              let number = phoneNumberTextView.text else { return }
         
         let id = data?.id ?? UUID()
         
@@ -252,8 +260,9 @@ extension PhoneBookViewController {
     private func fetchPokeImage(_ pokeData: PokeData) {
         guard let pngURL = pokeData.pngURL else { return }
         let urlRequest = URLRequest(url: pngURL)
-        URLSession.shared.dataTask(with: urlRequest) { data, response, error in
+        URLSession.shared.dataTask(with: urlRequest) { [weak self] data, response, error in
             guard error == nil,
+                  let self,
                   let data,
                   let image = UIImage(data: data),
                   let response = response as? HTTPURLResponse,
