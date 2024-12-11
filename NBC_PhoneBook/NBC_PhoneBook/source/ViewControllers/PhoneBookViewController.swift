@@ -12,9 +12,9 @@ import SnapKit
 /*
  FIXME: 리팩토링
  1. 데이터 형태 수정? -> Core Data에 이미지를 저장하는 것은 잘못된 것 같다.
-                     그렇다고 번호를 통해 매번 로드해야할까? 캐싱? Kingfisher
+ 그렇다고 번호를 통해 매번 로드해야할까? 캐싱? Kingfisher
  
- 2. 
+ 2.
  
  2. 코드 정리
  3. VC 역할 분리
@@ -38,7 +38,7 @@ final class PhoneBookViewController: UIViewController {
               !phoneNumberTextView.text.isEmpty else { return false }
         return true
     }
-        
+    
     // 포켓몬 이미지, 랜덤 이미지 생성 버튼
     private let pokeImageStackView: UIStackView = {
         let stackView = UIStackView()
@@ -193,12 +193,20 @@ extension PhoneBookViewController {
     // PhoneBookManager 에 데이터 저장
     private func saveData() {
         guard let phoneNumber = currentPhoneNumber() else { return }
-
+        
         if !haveData {
-            phoneBookManager.creat(phoneNumber)
-            self.data = phoneNumber
+            do {
+                try phoneBookManager.creat(phoneNumber)
+                self.data = phoneNumber
+            } catch {
+                presentErrorAlert("creat failed")
+            }
         } else {
-            phoneBookManager.update(phoneNumber)
+            do {
+                try phoneBookManager.update(phoneNumber)
+            } catch {
+                presentErrorAlert("update failed")
+            }
         }
     }
     
@@ -276,11 +284,17 @@ extension PhoneBookViewController {
         textView.layer.borderColor = UIColor.lightGray.cgColor
         textView.layer.borderWidth = 1
         textView.layer.cornerRadius = 8
-
+        
         textView.isScrollEnabled = false
         textView.isEditable = true
         
         return textView
+    }
+    
+    private func presentErrorAlert(_ message: String) {
+        let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "확인", style: .cancel))
+        present(alert, animated: false)
     }
     
 }

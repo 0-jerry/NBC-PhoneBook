@@ -30,6 +30,7 @@ extension PhoneNumberData {
         static let number = "number"
     }
     
+    // 데이터를 입력받아 값을 설정해주는 메서드
     func setPhoneNumber(_ phoneNumber: PhoneNumber) {
         self.setValue(phoneNumber.id, forKey: PhoneNumberData.Key.id)
         self.setValue(phoneNumber.pokeImage, forKey: PhoneNumberData.Key.pokeImage)
@@ -37,6 +38,7 @@ extension PhoneNumberData {
         self.setValue(phoneNumber.number, forKey: PhoneNumberData.Key.number)
     }
     
+    // 사용 데이터 형태로 반환
     func convertTo() -> PhoneNumber? {
         guard let id,
               let pokeImage,
@@ -49,14 +51,17 @@ extension PhoneNumberData {
                            number: number)
     }
     
+    // 데이터 업데이트
     func update(_ phoneNumber: PhoneNumber) {
         guard isSame(phoneNumber) else { return }
         setPhoneNumber(phoneNumber)
     }
     
+    // id를 통한 검증 메서드
     func isSame(_ phoneNumber: PhoneNumber) -> Bool {
         return id == phoneNumber.id
     }
+    
 }
 
 extension PhoneNumberData : Identifiable {

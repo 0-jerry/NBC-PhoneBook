@@ -14,6 +14,7 @@ import CoreData
 /// 킹피셔 이미지 캐싱.
 ///
 class PhoneBookManager {
+    
     static let shared = PhoneBookManager()
     
     private let container: NSPersistentContainer
@@ -27,67 +28,45 @@ class PhoneBookManager {
                                                  in: self.container.viewContext)
     }
     
-    func creat(_ phoneNumber: PhoneNumber) {
-        make(by: phoneNumber)
-        
-        do {
-            try save()
-        } catch let error {
-            print("creat: error - \(error.localizedDescription)")
-        }
-        
+    
+    func creat(_ phoneNumber: PhoneNumber) throws {
+        setPhoneNumber(from: phoneNumber)
+        try save()
     }
     
     func read() -> [PhoneNumber]? {
         guard let phoneNumberDatas = phoneNumberDatas() else { return nil }
         let phoneNumbers = phoneNumberDatas.compactMap { $0.convertTo() }
-        
         return phoneNumbers
     }
     
-    func update(_ phoneNumber: PhoneNumber) {
+    func update(_ phoneNumber: PhoneNumber) throws {
         guard let phoneNumberDatas = phoneNumberDatas() else { return }
         phoneNumberDatas.forEach { $0.update(phoneNumber) }
-        
-        do {
-            try save()
-        } catch let error {
-            print("update: error - \(error.localizedDescription)")
-        }
+        try save()
     }
     
-    func delete(_ phoneNumber: PhoneNumber) {
+    func delete(_ phoneNumber: PhoneNumber) throws {
         guard let phoneNumberDatas = phoneNumberDatas() else { return }
-        
         phoneNumberDatas.forEach {
-            if $0.isSame(phoneNumber) { container.viewContext.delete($0) }
+            if $0.isSame(phoneNumber) {
+                container.viewContext.delete($0)
+            }
         }
-        
-        do {
-            try save()
-        } catch let error {
-            print("delete: error - \(error.localizedDescription)")
-        }
+        try save()
     }
     
-    func reset() {
+    func reset() throws {
         guard let phoneNumberDatas = phoneNumberDatas() else { return }
-        
         phoneNumberDatas.forEach { container.viewContext.delete($0) }
-        
-        do {
-            try save()
-        } catch let error {
-            print("delete: error - \(error.localizedDescription)")
-        }
+        try save()
     }
-    
     
     private func save() throws {
         try self.container.viewContext.save()
     }
     
-    private func make(by phoneNumber: PhoneNumber) {
+    private func setPhoneNumber(from phoneNumber: PhoneNumber) {
         guard let entity else { return  }
         let object = NSManagedObject(entity: entity, insertInto: self.container.viewContext)
         

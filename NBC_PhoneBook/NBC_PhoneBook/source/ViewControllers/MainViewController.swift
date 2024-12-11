@@ -7,7 +7,6 @@
 
 import UIKit
 
-import Alamofire
 import CoreData
 
 /// 메인 화면 ViewController
@@ -27,12 +26,12 @@ final class MainViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = .white
+        
         configureData()
         configureNavigationController()
         configureTableView()
         
         tableView.reloadData()
-        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -153,11 +152,27 @@ extension MainViewController: UITableViewDataSource, UITableViewDelegate  {
     
     // 셀 수정 (삭제)
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        
         if editingStyle == .delete {
             let data = datas[indexPath.row]
-            phoneBookManager.delete(data)
+            do {
+                try phoneBookManager.delete(data)
+            } catch {
+                presentErrorAlert("delete failed")
+            }
             configureData()
         }
+    }
+    
+    private func presentErrorAlert(_ message: String) {
+        let alert = UIAlertController(title: "Error",
+                                      message: message,
+                                      preferredStyle: .alert)
+        
+        alert.addAction(UIAlertAction(title: "확인",
+                                      style: .cancel))
+        
+        present(alert, animated: false)
     }
 }
 
