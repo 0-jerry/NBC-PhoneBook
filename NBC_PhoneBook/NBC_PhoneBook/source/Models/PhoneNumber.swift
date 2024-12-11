@@ -9,4 +9,18 @@ import Foundation
 
 struct PhoneNumber {
     
+    let id: UUID
+    let pokeImage: Data
+    let name: String
+    let phoneNumber: String
+    
+    init(id: UUID, pokeImage: Data, name: String, number: String) {
+        self.id = id
+        self.pokeImage = pokeImage
+        self.name = name
+        self.phoneNumber = number
+    }
+    
 }
+
+

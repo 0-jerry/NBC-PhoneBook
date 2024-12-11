@@ -7,10 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		238B1BCB2D06919200985F39 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 238B1BCA2D06919200985F39 /* Alamofire */; };
+		238B1C452D07CF0200985F39 /* PhoneNumberData+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 238B1C432D07CF0200985F39 /* PhoneNumberData+CoreDataClass.swift */; };
+		238B1C462D07CF0200985F39 /* PhoneNumberData+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 238B1C442D07CF0200985F39 /* PhoneNumberData+CoreDataProperties.swift */; };
 		23FCA7502D04F2FC0013A36D /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 23FCA74F2D04F2FC0013A36D /* SnapKit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		238B1C432D07CF0200985F39 /* PhoneNumberData+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PhoneNumberData+CoreDataClass.swift"; sourceTree = "<group>"; };
+		238B1C442D07CF0200985F39 /* PhoneNumberData+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PhoneNumberData+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		23FCA68E2D04E7D50013A36D /* NBC_PhoneBook.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NBC_PhoneBook.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -41,6 +46,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				23FCA7502D04F2FC0013A36D /* SnapKit in Frameworks */,
+				238B1BCB2D06919200985F39 /* Alamofire in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -50,6 +56,8 @@
 		23FCA6852D04E7D50013A36D = {
 			isa = PBXGroup;
 			children = (
+				238B1C432D07CF0200985F39 /* PhoneNumberData+CoreDataClass.swift */,
+				238B1C442D07CF0200985F39 /* PhoneNumberData+CoreDataProperties.swift */,
 				23FCA6902D04E7D50013A36D /* NBC_PhoneBook */,
 				23FCA68F2D04E7D50013A36D /* Products */,
 			);
@@ -84,6 +92,7 @@
 			name = NBC_PhoneBook;
 			packageProductDependencies = (
 				23FCA74F2D04F2FC0013A36D /* SnapKit */,
+				238B1BCA2D06919200985F39 /* Alamofire */,
 			);
 			productName = NBC_PhoneBook;
 			productReference = 23FCA68E2D04E7D50013A36D /* NBC_PhoneBook.app */;
@@ -115,6 +124,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				23FCA74E2D04F2FC0013A36D /* XCRemoteSwiftPackageReference "SnapKit" */,
+				238B1BC92D06919200985F39 /* XCRemoteSwiftPackageReference "Alamofire" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 23FCA68F2D04E7D50013A36D /* Products */;
@@ -141,6 +151,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				238B1C452D07CF0200985F39 /* PhoneNumberData+CoreDataClass.swift in Sources */,
+				238B1C462D07CF0200985F39 /* PhoneNumberData+CoreDataProperties.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -344,6 +356,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		238B1BC92D06919200985F39 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Alamofire/Alamofire";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.10.2;
+			};
+		};
 		23FCA74E2D04F2FC0013A36D /* XCRemoteSwiftPackageReference "SnapKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SnapKit/SnapKit.git";
@@ -355,6 +375,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		238B1BCA2D06919200985F39 /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 238B1BC92D06919200985F39 /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
 		23FCA74F2D04F2FC0013A36D /* SnapKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 23FCA74E2D04F2FC0013A36D /* XCRemoteSwiftPackageReference "SnapKit" */;
