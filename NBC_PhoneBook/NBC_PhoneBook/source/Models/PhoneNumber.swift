@@ -12,13 +12,13 @@ struct PhoneNumber {
     let id: UUID
     let pokeImage: Data
     let name: String
-    let phoneNumber: String
+    let number: String
     
     init(id: UUID, pokeImage: Data, name: String, number: String) {
         self.id = id
         self.pokeImage = pokeImage
         self.name = name
-        self.phoneNumber = number
+        self.number = number
     }
     
 }

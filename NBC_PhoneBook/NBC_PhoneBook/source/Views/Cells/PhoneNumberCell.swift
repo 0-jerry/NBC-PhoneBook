@@ -19,14 +19,13 @@ final class PhoneNumberCell: UITableViewCell {
     // 포켓몬 이미지 뷰
     private let pokeImageView: UIImageView = {
         let imageView = UIImageView()
+        
+        imageView.contentMode = .scaleAspectFit
+        imageView.backgroundColor = .clear
+        
         imageView.layer.borderWidth = 1
         imageView.layer.cornerRadius = 35
         imageView.clipsToBounds = true
-        imageView.contentMode = .scaleAspectFit
-        
-        imageView.backgroundColor = .clear
-        
-        imageView.image = UIImage(systemName: "pencil.circle.fill")
         
         return imageView
     }()
@@ -47,25 +46,17 @@ final class PhoneNumberCell: UITableViewCell {
     // 이름 라벨 뷰
     private let nameLabel: UILabel = {
         let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 20,
-                                       weight: .medium)
-
+        label.font = UIFont.systemFont(ofSize: 20, weight: .medium)
         label.backgroundColor = .clear
-
-        label.text = "name"
         
         return label
     }()
     
-    // 이름 라벨 뷰
+    // 번호 라벨 뷰
     private let numberLabel: UILabel = {
         let label = UILabel()
         label.backgroundColor = .clear
-        
-        label.font = UIFont.systemFont(ofSize: 17,
-                                       weight: .regular)
-        
-        label.text = "010-0000-0000"
+        label.font = UIFont.systemFont(ofSize: 17, weight: .regular)
 
         return label
     }()
@@ -77,6 +68,15 @@ final class PhoneNumberCell: UITableViewCell {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        
+        self.data = nil
+        self.pokeImageView.image = nil
+        self.nameLabel.text = nil
+        self.numberLabel.text = nil
     }
 }
 
@@ -112,7 +112,7 @@ extension PhoneNumberCell {
         self.data = phoneNumber
         
         updateNameLabel(phoneNumber.name)
-        updateNumberLabel(phoneNumber.phoneNumber)
+        updateNumberLabel(phoneNumber.number)
         updatePokeImage(phoneNumber.pokeImage)
     }
     
