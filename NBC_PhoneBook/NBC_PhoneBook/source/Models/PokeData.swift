@@ -27,9 +27,10 @@ struct PokeData {
         }
     }
     
-    /// 랜덤 생성 
-    init() {
-        self.number = (1...1000).randomElement() ?? 132
+    static func random() -> Self {
+        let randomNumber = (1...1000).randomElement() ?? 132
+        return PokeData(from: randomNumber)
     }
+    /// 랜덤 생성
     
 }

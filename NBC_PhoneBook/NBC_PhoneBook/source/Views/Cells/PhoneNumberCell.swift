@@ -7,7 +7,7 @@
 
 import UIKit
 
-import Alamofire
+import Kingfisher
 import SnapKit
 
 final class PhoneNumberCell: UITableViewCell {
@@ -113,7 +113,7 @@ extension PhoneNumberCell {
         
         updateNameLabel(phoneNumber.name)
         updateNumberLabel(phoneNumber.number)
-        updatePokeImage(phoneNumber.pokeImage)
+        updatePokeImage(phoneNumber.imageURL)
     }
     
     private func updateNameLabel(_ name: String) {
@@ -124,9 +124,8 @@ extension PhoneNumberCell {
         numberLabel.text = phoneNumber
     }
     
-    private func updatePokeImage(_ pokeImage: Data) {
-        guard let pokeImage = UIImage(data: pokeImage) else { return }
-        pokeImageView.image = pokeImage
+    private func updatePokeImage(_ imageURL: URL) {
+        pokeImageView.kf.setImage(with: imageURL)
     }
     
 }

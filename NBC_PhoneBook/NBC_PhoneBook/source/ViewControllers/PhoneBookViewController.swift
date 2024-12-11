@@ -8,6 +8,7 @@
 import UIKit
 
 import SnapKit
+import Kingfisher
 
 /*
  FIXME: 리팩토링
@@ -27,13 +28,16 @@ import SnapKit
  */
 
 /// 전화번호 생성 화면 ViewController
-final class PhoneBookViewController: UIViewController {
+final class PhoneBookViewController: UIViewController, ErrorAlertPresentable {
     
     private let phoneBookManager = PhoneBookManager.shared
     private var data: PhoneNumber?
+    private var imageURL: URL?
+    
     private var haveData: Bool { self.data != nil }
+    
     private var isSet: Bool {
-        guard pokeImageView.image != nil,
+        guard imageURL != nil,
               !nameTextView.text.isEmpty,
               !phoneNumberTextView.text.isEmpty else { return false }
         return true
@@ -95,11 +99,18 @@ final class PhoneBookViewController: UIViewController {
     }()
     
     // 이름 텍스트 뷰
-    private lazy var nameTextView: UITextView = inputTextView()
+    private lazy var nameTextView: UITextView = {
+        let textView = UITextView()
+        configureTextView(textView)
+        return textView
+    }()
     
     // 번호 텍스트 뷰
-    private lazy var phoneNumberTextView: UITextView = inputTextView()
-    
+    private lazy var phoneNumberTextView: UITextView = {
+        let textView = UITextView()
+        configureTextView(textView)
+        return textView
+    }()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -108,7 +119,7 @@ final class PhoneBookViewController: UIViewController {
         configureNavigationController()
         
         if !haveData {
-            defaultImage()
+            defaultPokeImage()
         }
         
         self.pokeRandomButton.addTarget(self,
@@ -122,7 +133,6 @@ final class PhoneBookViewController: UIViewController {
 extension PhoneBookViewController {
     
     private func configureUI() {
-        
         view.backgroundColor = .white
         
         [
@@ -165,77 +175,82 @@ extension PhoneBookViewController {
 extension PhoneBookViewController {
     
     private func configureNavigationController() {
-        guard let navigationController = self.navigationController else { return }
-        
-        let titleFont = UIFont.systemFont(ofSize: 23, weight: .bold)
-        
-        navigationController.navigationBar.titleTextAttributes = [.font: titleFont]
+        let rightBarButtonItem = UIBarButtonItem(title: "적용",
+                                                 style: .plain,
+                                                 target: self,
+                                                 action: #selector(applyButtonTapped))
         
         let titleLabel = UILabel()
-        titleLabel.text = "연락처 추가"
-        titleLabel.font = titleFont
+        titleLabel.font = UIFont.systemFont(ofSize: 23, weight: .bold)
+        titleLabel.text = data?.name ?? "연락처 추가"
+        titleLabel.textAlignment = .center
         
         self.navigationItem.titleView = titleLabel
-        self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "적용",
-                                                                 style: .plain,
-                                                                 target: self,
-                                                                 action: #selector(applyButtonTapped))
-        
+        self.navigationItem.rightBarButtonItem = rightBarButtonItem
     }
     
     @objc private func applyButtonTapped() {
-        saveData()
-        
-        guard let navigationController else { return }
-        let _ = navigationController.popViewController(animated: false)
+        savePhoneNumber()
+        guard let name = data?.name else { return }
+        updateTitleView(name)
     }
     
     // PhoneBookManager 에 데이터 저장
-    private func saveData() {
+    private func savePhoneNumber() {
         guard let phoneNumber = currentPhoneNumber() else { return }
-        
-        if !haveData {
-            do {
-                try phoneBookManager.creat(phoneNumber)
-                self.data = phoneNumber
-            } catch {
-                presentErrorAlert("creat failed")
-            }
-        } else {
-            do {
-                try phoneBookManager.update(phoneNumber)
-            } catch {
-                presentErrorAlert("update failed")
-            }
+        switch haveData {
+        case true: update(phoneNumber)
+        case false: creat(phoneNumber)
         }
     }
     
     // 입력 데이터를 PhoneNumber로 반환
     private func currentPhoneNumber() -> PhoneNumber? {
         guard isSet,
-              let pngData = pokeImageView.image?.pngData(),
               let name = nameTextView.text,
-              let number = phoneNumberTextView.text else { return nil }
+              let number = phoneNumberTextView.text,
+              let imageURL = imageURL else { return nil }
         
         let id = data?.id ?? UUID()
         let numberStr = MobilePhoneNumber(number).form()
         
         return PhoneNumber(id: id,
-                           pokeImage: pngData,
+                           imageURL: imageURL,
                            name: name,
                            number: numberStr)
     }
     
+    
+    private func creat(_ phoneNumber: PhoneNumber) {
+        do {
+            self.data = phoneNumber
+            try phoneBookManager.creat(phoneNumber)
+        } catch {
+            presentErrorAlert("creat failed")
+        }
+    }
+    
+    private func update(_ phoneNumber: PhoneNumber) {
+        do {
+            try phoneBookManager.update(phoneNumber)
+        } catch {
+            presentErrorAlert("update failed")
+        }
+    }
+    
     func setData(_ phoneNumber: PhoneNumber) {
-        guard let image = UIImage(data: phoneNumber.pokeImage) else { return }
-        
         self.data = phoneNumber
         
-        DispatchQueue.main.async {
-            self.pokeImageView.image = image
-            self.nameTextView.text = phoneNumber.name
-            self.phoneNumberTextView.text = phoneNumber.number
+        setPokeImage(phoneNumber.imageURL)
+        nameTextView.text = phoneNumber.name
+        phoneNumberTextView.text = phoneNumber.number
+    }
+    
+    private func updateTitleView(_ name: String) {
+        guard let titleLabelView = navigationItem.titleView as? UILabel else {
+            return
         }
+        titleLabelView.text = name
     }
     
 }
@@ -244,38 +259,26 @@ extension PhoneBookViewController {
 //TODO: URLSession or Alamofire 로 API 통신
 extension PhoneBookViewController {
     
+    //URL 저장 및 pokeImageView 업데이트
+    private func setPokeImage(_ imageURL: URL) {
+        self.imageURL = imageURL
+        pokeImageView.kf.setImage(with: imageURL)
+    }
+    
     //데이터가 없을 경우 메타몽 설정
-    private func defaultImage() {
-        fetchPokeImage(PokeData(from: 132))
+    private func defaultPokeImage() {
+        guard let imageURL = PokeData(from: 132).pngURL else { return }
+        setPokeImage(imageURL)
     }
     
     //TODO: URLSession or Alamofire 로 API 통신
     @objc private func randomButtonTapped() {
-        fetchPokeImage(PokeData())
+        guard let imageURL = PokeData.random().pngURL else { return }
+        setPokeImage(imageURL)
     }
-    
-    // 이미지 요청 메서드
-    private func fetchPokeImage(_ pokeData: PokeData) {
-        guard let pngURL = pokeData.pngURL else { return }
-        let urlRequest = URLRequest(url: pngURL)
-        URLSession.shared.dataTask(with: urlRequest) { [weak self] data, response, error in
-            guard error == nil,
-                  let self,
-                  let data,
-                  let image = UIImage(data: data),
-                  let response = response as? HTTPURLResponse,
-                  (200..<300).contains(response.statusCode) else { return }
-            
-            DispatchQueue.main.async {
-                self.pokeImageView.image = image
-            }
-        }.resume()
-    }
-    
     
     // 재사용 텍스트 뷰 (이름, 번호)
-    private func inputTextView() -> UITextView {
-        let textView = UITextView()
+    private func configureTextView(_ textView: UITextView) {
         textView.textContentType = .telephoneNumber
         textView.font = .systemFont(ofSize: 17, weight: .regular)
         textView.textColor = .black
@@ -287,14 +290,6 @@ extension PhoneBookViewController {
         
         textView.isScrollEnabled = false
         textView.isEditable = true
-        
-        return textView
-    }
-    
-    private func presentErrorAlert(_ message: String) {
-        let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "확인", style: .cancel))
-        present(alert, animated: false)
     }
     
 }

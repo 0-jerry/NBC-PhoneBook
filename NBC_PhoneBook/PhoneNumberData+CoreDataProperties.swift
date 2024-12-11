@@ -1,8 +1,8 @@
 //
-//  PokePhoneNumberData+CoreDataProperties.swift
+//  PhoneNumberData+CoreDataProperties.swift
 //  NBC_PhoneBook
 //
-//  Created by t2023-m0072 on 12/9/24.
+//  Created by t2023-m0072 on 12/11/24.
 //
 //
 
@@ -11,21 +11,21 @@ import CoreData
 
 
 extension PhoneNumberData {
-    
+
     @nonobjc public class func fetchRequest() -> NSFetchRequest<PhoneNumberData> {
         return NSFetchRequest<PhoneNumberData>(entityName: "PhoneNumberData")
     }
-    
+
     @NSManaged public var id: UUID?
-    @NSManaged public var pokeImage: Data?
     @NSManaged public var name: String?
     @NSManaged public var number: String?
-    
+    @NSManaged public var imageURL: URL?
+
     static let className: String = "PhoneNumberData"
     
     enum Key {
         static let id = "id"
-        static let pokeImage = "pokeImage"
+        static let imageURL = "imageURL"
         static let name = "name"
         static let number = "number"
     }
@@ -33,7 +33,7 @@ extension PhoneNumberData {
     // 데이터를 입력받아 값을 설정해주는 메서드
     func setPhoneNumber(_ phoneNumber: PhoneNumber) {
         self.setValue(phoneNumber.id, forKey: PhoneNumberData.Key.id)
-        self.setValue(phoneNumber.pokeImage, forKey: PhoneNumberData.Key.pokeImage)
+        self.setValue(phoneNumber.imageURL, forKey: PhoneNumberData.Key.imageURL)
         self.setValue(phoneNumber.name, forKey: PhoneNumberData.Key.name)
         self.setValue(phoneNumber.number, forKey: PhoneNumberData.Key.number)
     }
@@ -41,12 +41,12 @@ extension PhoneNumberData {
     // 사용 데이터 형태로 반환
     func convertTo() -> PhoneNumber? {
         guard let id,
-              let pokeImage,
+              let imageURL,
               let name,
               let number else { return nil}
         
         return PhoneNumber(id: id,
-                           pokeImage: pokeImage,
+                           imageURL: imageURL,
                            name: name,
                            number: number)
     }
@@ -65,5 +65,5 @@ extension PhoneNumberData {
 }
 
 extension PhoneNumberData : Identifiable {
-    
+
 }

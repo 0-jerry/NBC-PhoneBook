@@ -10,7 +10,7 @@ import UIKit
 import CoreData
 
 /// 메인 화면 ViewController
-final class MainViewController: UIViewController {
+final class MainViewController: UIViewController, ErrorAlertPresentable {
     
     private var datas: [PhoneNumber] = []
     
@@ -30,8 +30,6 @@ final class MainViewController: UIViewController {
         configureData()
         configureNavigationController()
         configureTableView()
-        
-        tableView.reloadData()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -164,16 +162,6 @@ extension MainViewController: UITableViewDataSource, UITableViewDelegate  {
         }
     }
     
-    private func presentErrorAlert(_ message: String) {
-        let alert = UIAlertController(title: "Error",
-                                      message: message,
-                                      preferredStyle: .alert)
-        
-        alert.addAction(UIAlertAction(title: "확인",
-                                      style: .cancel))
-        
-        present(alert, animated: false)
-    }
 }
 
 #Preview {
