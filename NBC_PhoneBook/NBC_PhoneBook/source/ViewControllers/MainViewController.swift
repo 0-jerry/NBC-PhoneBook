@@ -8,20 +8,27 @@
 import UIKit
 
 import CoreData
+import SnapKit
 
 /// 메인 화면 ViewController
 final class MainViewController: UIViewController, ErrorAlertPresentable {
         
-    private let phoneBookManager = PhoneBookManager.shared
     
-    private var datas: [PhoneNumber] = []
-
+    private let pokeContactManager = PokeContactManager.shared
+    
+    // 연락처 데이터
+    private var datas: [PokeContact] = []
+    
+    // 헤더뷰
+    private let headerView = UIView()
+    
+    // 전화번호부 테이블 뷰
     private lazy var phoneBookTableView: UITableView = {
         let tableView = UITableView()
         tableView.backgroundColor = .white
         
-        tableView.register(PhoneNumberTableViewCell.self,
-                                forCellReuseIdentifier: PhoneNumberTableViewCell.id)
+        tableView.register(PokeContactTableViewCell.self,
+                                forCellReuseIdentifier: PokeContactTableViewCell.id)
         
         tableView.dataSource = self
         tableView.delegate = self
@@ -35,21 +42,21 @@ final class MainViewController: UIViewController, ErrorAlertPresentable {
         
         self.view.backgroundColor = .white
         
-        setUpNavigationController()
+        setupHeaderView()
         setUpPhoneBookTableView()
-//        configurePhoneBookTableView()
     }
     
     //뷰가 화면에 나타날 때 실행
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        navigationController?.isNavigationBarHidden = true
         loadDatas()
     }
     
     //데이터 설정 메서드
     private func loadDatas() {
         do {
-            let datas = try phoneBookManager.read()
+            let datas = try pokeContactManager.read()
             self.datas = datas
             self.phoneBookTableView.reloadData()
         } catch {
@@ -63,36 +70,52 @@ final class MainViewController: UIViewController, ErrorAlertPresentable {
 
 extension MainViewController {
     
-    // 네비게이션 컨트롤러 설정 메서드
-    private func setUpNavigationController() {
-        
-        let titleFont = UIFont.systemFont(ofSize: 23, weight: .bold)
-        let itemFont = UIFont.systemFont(ofSize: 21, weight: .semibold)
-        
+    // 헤더뷰 설정 메서드
+    private func setupHeaderView() {
         let titleLabel = UILabel()
         titleLabel.text = "친구 목록"
-        titleLabel.font = titleFont
+        titleLabel.font = UIFont.systemFont(ofSize: 28, weight: .bold)
         
-        let addButton = UIBarButtonItem(title: "추가",
-                                        style: .plain,
-                                        target: self,
-                                        action: #selector(pushPhoneBookViewController))
+        let addButton = UIButton()
+        addButton.setTitle("추가", for: .normal)
+        addButton.titleLabel?.font = UIFont.systemFont(ofSize: 21, weight: .semibold)
+        addButton.setTitleColor(.systemBlue, for: .normal)
+        addButton.addTarget(self, action: #selector(pushPhoneBookViewController), for: .touchUpInside)
         
-        addButton.setTitleTextAttributes([.font: itemFont], for: .normal)
+        view.addSubview(headerView)
         
-        self.navigationItem.titleView = titleLabel
-        self.navigationItem.setRightBarButton(addButton, animated: false)
+        [
+         titleLabel,
+         addButton
+        ].forEach { headerView.addSubview($0) }
+        
+        headerView.snp.makeConstraints {
+            $0.height.equalTo(80)
+            $0.leading.trailing.top.equalTo(view.safeAreaLayoutGuide)
+        }
+        
+        titleLabel.snp.makeConstraints {
+            $0.center.height.equalToSuperview()
+        }
+        
+        addButton.snp.makeConstraints {
+            $0.trailing.equalToSuperview().inset(20)
+            $0.centerY.equalToSuperview()
+            $0.height.equalTo(50)
+            $0.width.equalTo(70)
+        }
+        
     }
     
     // PhoneBookViewController 푸쉬 액션
     @objc private func pushPhoneBookViewController() {
         guard let navigationController = self.navigationController else { return }
         let phoneBookViewController = makePhoneBookViewController(nil)
-        navigationController.pushViewController(phoneBookViewController, animated: false)
+        navigationController.pushViewController(phoneBookViewController, animated: true)
     }
     
     // PhoneBookViewController 설정 및 반환
-    private func makePhoneBookViewController(_ data: PhoneNumber?) -> PhoneBookViewController {
+    private func makePhoneBookViewController(_ data: PokeContact?) -> PhoneBookViewController {
         let phoneBookViewController = PhoneBookViewController()
         if let data { phoneBookViewController.setData(data) }
     
@@ -111,7 +134,7 @@ extension MainViewController: UITableViewDataSource, UITableViewDelegate  {
 
         phoneBookTableView.snp.makeConstraints {
             $0.bottom.leading.trailing.equalToSuperview().inset(20)
-            $0.top.equalTo(self.view.safeAreaLayoutGuide).inset(30)
+            $0.top.equalTo(headerView.snp.bottom).offset(20)
         }
     }
     
@@ -122,15 +145,15 @@ extension MainViewController: UITableViewDataSource, UITableViewDelegate  {
     
     // 테이블 뷰에 셀 반환
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let phoneNumberCell = tableView.dequeueReusableCell(withIdentifier: PhoneNumberTableViewCell.id,
-                                                                  for: indexPath) as? PhoneNumberTableViewCell else {
+        guard let pokeContactCell = tableView.dequeueReusableCell(withIdentifier: PokeContactTableViewCell.id,
+                                                                  for: indexPath) as? PokeContactTableViewCell else {
             return UITableViewCell()
         }
         
-        let phoneNumber = datas[indexPath.row]
-        phoneNumberCell.configureData(phoneNumber)
+        let pokeContact = datas[indexPath.row]
+        pokeContactCell.configureData(pokeContact)
         
-        return phoneNumberCell
+        return pokeContactCell
     }
     
     // 셀 높이 설정
@@ -140,13 +163,13 @@ extension MainViewController: UITableViewDataSource, UITableViewDelegate  {
     
     // 셀 선택시 실행
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let phoneNumberCell = tableView.cellForRow(at: indexPath) as? PhoneNumberTableViewCell,
-              let data = phoneNumberCell.data,
+        guard let pokeContactCell = tableView.cellForRow(at: indexPath) as? PokeContactTableViewCell,
+              let data = pokeContactCell.data,
               let navigationController = self.navigationController else { return }
         
         let phoneBookViewController = makePhoneBookViewController(data)
         
-        navigationController.pushViewController(phoneBookViewController, animated: false)
+        navigationController.pushViewController(phoneBookViewController, animated: true)
     }
     
     // 셀 수정 (삭제)
@@ -155,7 +178,7 @@ extension MainViewController: UITableViewDataSource, UITableViewDelegate  {
         if editingStyle == .delete {
             let data = datas[indexPath.row]
             do {
-                try phoneBookManager.delete(data)
+                try pokeContactManager.delete(data)
             } catch {
                 presentErrorAlert("delete failed")
             }

@@ -11,11 +11,11 @@ import Kingfisher
 import SnapKit
 
 ///PhoneNumberTableViewCell
-final class PhoneNumberTableViewCell: UITableViewCell {
+final class PokeContactTableViewCell: UITableViewCell {
     
     static let id: String = "PhoneNumberTableViewCell"
     
-    private(set) var data: PhoneNumber?
+    private(set) var data: PokeContact?
 
     // 포켓몬 이미지 뷰
     private let pokeImageView: UIImageView = {
@@ -80,7 +80,7 @@ final class PhoneNumberTableViewCell: UITableViewCell {
 }
 
 
-extension PhoneNumberTableViewCell {
+extension PokeContactTableViewCell {
     
     // UI 설정
     private func setUpUI() {
@@ -96,20 +96,20 @@ extension PhoneNumberTableViewCell {
         
         pokeImageView.snp.makeConstraints {
             $0.width.height.equalTo(70)
-            $0.leading.equalToSuperview().inset(5)
+            $0.leading.equalToSuperview().inset(20)
             $0.centerY.equalToSuperview()
         }
         
         labelStackView.snp.makeConstraints {
             $0.centerY.trailing.equalToSuperview()
             $0.top.bottom.equalToSuperview().inset(10)
-            $0.leading.equalTo(pokeImageView.snp.trailing).offset(80)
+            $0.leading.equalTo(pokeImageView.snp.trailing).offset(20)
         }
         
     }
     
     //데이터 저장
-    func configureData(_ phoneNumber: PhoneNumber) {
+    func configureData(_ phoneNumber: PokeContact) {
         self.data = phoneNumber
         
         updateNameLabel(phoneNumber.name)

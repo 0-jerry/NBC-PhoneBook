@@ -15,17 +15,17 @@ import SnapKit
 final class PhoneBookViewController: UIViewController, ErrorAlertPresentable {
     
     // 전화번호 데이터 매니저
-    private let phoneBookManager = PhoneBookManager.shared
+    private let pokeContactManager = PokeContactManager.shared
     
     // 전화번호 데이터
-    private var phoneNumber: PhoneNumber?
+    private var pokeContact: PokeContact?
     
     // 현재 이미지 주소 저장
     private var imageURL: URL?
     
     // 생성화면 or 수정화면
     private var editingStyle: PhoneBookViewController.EditingStyle {
-        switch self.phoneNumber {
+        switch self.pokeContact {
         case nil:
             return .creat
         default:
@@ -142,6 +142,10 @@ final class PhoneBookViewController: UIViewController, ErrorAlertPresentable {
                                         for: .touchUpInside)
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.isNavigationBarHidden = false
+    }
 }
 
 //MARK: - set up UI
@@ -192,17 +196,17 @@ extension PhoneBookViewController {
 extension PhoneBookViewController {
     
     // 데이터 저장
-    func setData(_ phoneNumber: PhoneNumber) {
-        self.phoneNumber = phoneNumber
+    func setData(_ pokeContact: PokeContact) {
+        self.pokeContact = pokeContact
     }
     
     // 뷰에 데이터 적용
     private func configureData() {
-        guard let phoneNumber = self.phoneNumber else { return }
+        guard let pokeContact = self.pokeContact else { return }
         
-        configurePokeImage(phoneNumber.imageURL)
-        nameTextView.text = phoneNumber.name
-        phoneNumberTextView.text = phoneNumber.number
+        configurePokeImage(pokeContact.imageURL)
+        nameTextView.text = pokeContact.name
+        phoneNumberTextView.text = pokeContact.number
     }
 }
 
@@ -212,6 +216,7 @@ extension PhoneBookViewController {
     
     // 네비게이션 바 설정
     private func configureNavigationController() {
+                
         let rightBarButtonItem = UIBarButtonItem(title: "적용",
                                                  style: .plain,
                                                  target: self,
@@ -219,7 +224,7 @@ extension PhoneBookViewController {
         
         let titleLabel = UILabel()
         titleLabel.font = UIFont.systemFont(ofSize: 23, weight: .bold)
-        titleLabel.text = editingStyle == .creat ? "연락처 추가" : phoneNumber?.name
+        titleLabel.text = editingStyle == .creat ? "연락처 추가" : pokeContact?.name
         titleLabel.textAlignment = .center
         
         self.navigationItem.titleView = titleLabel
@@ -235,44 +240,44 @@ extension PhoneBookViewController {
     
     // PhoneBookManager 에 데이터 저장
     private func savePhoneNumber() {
-        guard let phoneNumber = currentPhoneNumber() else { return }
+        guard let pokeContact = currentPokeContact() else { return }
         switch editingStyle {
         case .creat:
-            creat(phoneNumber)
+            creat(pokeContact)
         case .update:
-            update(phoneNumber)
+            update(pokeContact)
         }
     }
     
     // 입력 데이터를 PhoneNumber로 반환
-    private func currentPhoneNumber() -> PhoneNumber? {
+    private func currentPokeContact() -> PokeContact? {
         guard let name = nameTextView.text,
               let number = phoneNumberTextView.text,
               let imageURL = imageURL else { return nil }
         
-        let id = phoneNumber?.id ?? UUID()
+        let id = pokeContact?.id ?? UUID()
         let numberStr = PhoneNumberFormatter(number).form()
         
-        return PhoneNumber(id: id,
+        return PokeContact(id: id,
                            imageURL: imageURL,
                            name: name,
                            number: numberStr)
     }
     
     // phoneBookManager를 통해 CoreData에 데이터 저장
-    private func creat(_ phoneNumber: PhoneNumber) {
+    private func creat(_ pokeContact: PokeContact) {
         do {
-            self.phoneNumber = phoneNumber
-            try phoneBookManager.creat(phoneNumber)
+            self.pokeContact = pokeContact
+            try pokeContactManager.creat(pokeContact)
         } catch {
             presentErrorAlert("creat failed")
         }
     }
     
     // phoneBookManager를 통해 CoreData의 데이터 수정
-    private func update(_ phoneNumber: PhoneNumber) {
+    private func update(_ pokeContact: PokeContact) {
         do {
-            try phoneBookManager.update(phoneNumber)
+            try pokeContactManager.update(pokeContact)
         } catch {
             presentErrorAlert("update failed")
         }
