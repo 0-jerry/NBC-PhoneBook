@@ -9,16 +9,17 @@ import Foundation
 
 struct PokeData {
     
+    // 포켓몬 번호
     private let number: Int
     
-    var pngURL: URL? {
+    // 번호를 통해 URL 생성
+    private var pngURL: URL? {
         let url = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/\(self.number).png"
-         
         return URL(string: url)
     }
     
-    /// Cora Data 에서 불러올 때 사용
-    init(from number: Int) {
+    /// 랜덤 URL 생성 시 사용
+    private init(from number: Int) {
         switch number {
         case 1...1000:
             self.number = number
@@ -27,10 +28,18 @@ struct PokeData {
         }
     }
     
-    static func random() -> Self {
-        let randomNumber = (1...1000).randomElement() ?? 132
-        return PokeData(from: randomNumber)
+    /// 랜덤 이미지 URL
+    static func randomURL() -> URL? {
+        let randomNumber = Int.random(in: 1...1000)
+        return PokeData(from: randomNumber).pngURL
     }
-    /// 랜덤 생성
+    
+    /// 기본 이미지 URL
+    static func dafaultURL() -> URL? {
+        return PokeData(from: 132).pngURL
+    }
     
 }
+
+
+

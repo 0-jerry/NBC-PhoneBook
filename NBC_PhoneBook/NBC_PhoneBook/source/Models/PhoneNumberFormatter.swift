@@ -6,8 +6,8 @@
 //
 import Foundation
 
-/// 핸드폰 번호 입력
-struct MobilePhoneNumber {
+/// 핸드폰 번호 포맷터 (적용방식 수정 필요)
+struct PhoneNumberFormatter {
     
     private var firstNumber: String = ""
     private var centerNumber: String = ""

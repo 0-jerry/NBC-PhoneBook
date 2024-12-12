@@ -7,6 +7,8 @@
 
 import Foundation
 
+/// 전화번호 데이터 형식
+///
 struct PhoneNumber {
     
     let id: UUID

@@ -10,9 +10,10 @@ import UIKit
 import Kingfisher
 import SnapKit
 
-final class PhoneNumberCell: UITableViewCell {
+///PhoneNumberTableViewCell
+final class PhoneNumberTableViewCell: UITableViewCell {
     
-    static let id: String = "PhoneNumberCell"
+    static let id: String = "PhoneNumberTableViewCell"
     
     private(set) var data: PhoneNumber?
 
@@ -52,7 +53,7 @@ final class PhoneNumberCell: UITableViewCell {
         return label
     }()
     
-    // 번호 라벨 뷰
+    // 전화번호 라벨 뷰
     private let numberLabel: UILabel = {
         let label = UILabel()
         label.backgroundColor = .clear
@@ -63,27 +64,26 @@ final class PhoneNumberCell: UITableViewCell {
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        configureUI()
+        setUpUI()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
+    //재사용시 데이터 초기화
     override func prepareForReuse() {
         super.prepareForReuse()
         
-        self.data = nil
-        self.pokeImageView.image = nil
-        self.nameLabel.text = nil
-        self.numberLabel.text = nil
+        resetData()
     }
 }
 
 
-extension PhoneNumberCell {
+extension PhoneNumberTableViewCell {
     
-    private func configureUI() {
+    // UI 설정
+    private func setUpUI() {
         self.backgroundColor = .clear
         
         [pokeImageView,
@@ -108,7 +108,8 @@ extension PhoneNumberCell {
         
     }
     
-    func setData(_ phoneNumber: PhoneNumber) {
+    //데이터 저장
+    func configureData(_ phoneNumber: PhoneNumber) {
         self.data = phoneNumber
         
         updateNameLabel(phoneNumber.name)
@@ -116,16 +117,27 @@ extension PhoneNumberCell {
         updatePokeImage(phoneNumber.imageURL)
     }
     
+    // 이름 라벨 업데이트
     private func updateNameLabel(_ name: String) {
         nameLabel.text = name
     }
     
+    // 전화번호 라벨 업데이트
     private func updateNumberLabel(_ phoneNumber: String) {
         numberLabel.text = phoneNumber
     }
     
+    // 이미지 업데이트
     private func updatePokeImage(_ imageURL: URL) {
         pokeImageView.kf.setImage(with: imageURL)
+    }
+    
+    // 데이터 초기화
+    private func resetData() {
+        self.data = nil
+        self.pokeImageView.image = nil
+        self.nameLabel.text = nil
+        self.numberLabel.text = nil
     }
     
 }

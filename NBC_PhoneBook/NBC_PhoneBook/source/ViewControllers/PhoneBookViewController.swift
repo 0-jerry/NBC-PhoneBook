@@ -7,40 +7,36 @@
 
 import UIKit
 
-import SnapKit
 import Kingfisher
+import SnapKit
 
-/*
- FIXME: 리팩토링
- 1. 데이터 형태 수정? -> Core Data에 이미지를 저장하는 것은 잘못된 것 같다.
- 그렇다고 번호를 통해 매번 로드해야할까? 캐싱? Kingfisher
- 
- 2.
- 
- 2. 코드 정리
- 3. VC 역할 분리
- 4. 메서드 분리
- 5. 모델 형태 수정
- 6. 델리게이터 패턴 만들어보기
- 
- TODO: 추가 기능
- 1. 적용버튼 비활성화
- */
-
-/// 전화번호 생성 화면 ViewController
+/// 전화번호 생성 및 수정 화면
+///
 final class PhoneBookViewController: UIViewController, ErrorAlertPresentable {
     
+    // 전화번호 데이터 매니저
     private let phoneBookManager = PhoneBookManager.shared
-    private var data: PhoneNumber?
+    
+    // 전화번호 데이터
+    private var phoneNumber: PhoneNumber?
+    
+    // 현재 이미지 주소 저장
     private var imageURL: URL?
     
-    private var haveData: Bool { self.data != nil }
+    // 생성화면 or 수정화면
+    private var editingStyle: PhoneBookViewController.EditingStyle {
+        switch self.phoneNumber {
+        case nil:
+            return .creat
+        default:
+            return .update
+        }
+    }
     
-    private var isSet: Bool {
-        guard imageURL != nil,
-              !nameTextView.text.isEmpty,
-              !phoneNumberTextView.text.isEmpty else { return false }
-        return true
+    // 화면 스타일 (생성, 수정)
+    private enum EditingStyle {
+        case creat
+        case update
     }
     
     // 포켓몬 이미지, 랜덤 이미지 생성 버튼
@@ -101,25 +97,44 @@ final class PhoneBookViewController: UIViewController, ErrorAlertPresentable {
     // 이름 텍스트 뷰
     private lazy var nameTextView: UITextView = {
         let textView = UITextView()
-        configureTextView(textView)
+        setUpTextView(textView)
         return textView
     }()
     
     // 번호 텍스트 뷰
     private lazy var phoneNumberTextView: UITextView = {
         let textView = UITextView()
-        configureTextView(textView)
+        setUpTextView(textView)
         return textView
     }()
     
+    // 재사용 텍스트 뷰 (이름, 번호)
+    private func setUpTextView(_ textView: UITextView) {
+        textView.textContentType = .telephoneNumber
+        textView.font = .systemFont(ofSize: 17, weight: .regular)
+        textView.textColor = .black
+        textView.text = nil
+        
+        textView.layer.borderColor = UIColor.lightGray.cgColor
+        textView.layer.borderWidth = 1
+        textView.layer.cornerRadius = 8
+        
+        textView.isScrollEnabled = false
+        textView.isEditable = true
+    }
+    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        configureUI()
+        setUpUI()
         configureNavigationController()
         
-        if !haveData {
+        switch editingStyle {
+        case .creat:
             defaultPokeImage()
+        case .update:
+            configureData()
         }
         
         self.pokeRandomButton.addTarget(self,
@@ -129,10 +144,12 @@ final class PhoneBookViewController: UIViewController, ErrorAlertPresentable {
     
 }
 
-//MARK: - Configure UI
+//MARK: - set up UI
 extension PhoneBookViewController {
     
-    private func configureUI() {
+    //UI 레이아웃 설정
+    private func setUpUI() {
+        
         view.backgroundColor = .white
         
         [
@@ -171,9 +188,29 @@ extension PhoneBookViewController {
 }
 
 
-//MARK: - Navigation Controller
+//MARK: - 외부 사용 메서드
 extension PhoneBookViewController {
     
+    // 데이터 저장
+    func setData(_ phoneNumber: PhoneNumber) {
+        self.phoneNumber = phoneNumber
+    }
+    
+    // 뷰에 데이터 적용
+    private func configureData() {
+        guard let phoneNumber = self.phoneNumber else { return }
+        
+        configurePokeImage(phoneNumber.imageURL)
+        nameTextView.text = phoneNumber.name
+        phoneNumberTextView.text = phoneNumber.number
+    }
+}
+
+
+//MARK: - NavigationController
+extension PhoneBookViewController {
+    
+    // 네비게이션 바 설정
     private func configureNavigationController() {
         let rightBarButtonItem = UIBarButtonItem(title: "적용",
                                                  style: .plain,
@@ -182,37 +219,39 @@ extension PhoneBookViewController {
         
         let titleLabel = UILabel()
         titleLabel.font = UIFont.systemFont(ofSize: 23, weight: .bold)
-        titleLabel.text = data?.name ?? "연락처 추가"
+        titleLabel.text = editingStyle == .creat ? "연락처 추가" : phoneNumber?.name
         titleLabel.textAlignment = .center
         
         self.navigationItem.titleView = titleLabel
         self.navigationItem.rightBarButtonItem = rightBarButtonItem
     }
     
+    // 네비게이션 바 적용 버튼 액션
     @objc private func applyButtonTapped() {
         savePhoneNumber()
-        guard let name = data?.name else { return }
-        updateTitleView(name)
+        guard let navigationController else { return }
+        let _ = navigationController.popViewController(animated: false)
     }
     
     // PhoneBookManager 에 데이터 저장
     private func savePhoneNumber() {
         guard let phoneNumber = currentPhoneNumber() else { return }
-        switch haveData {
-        case true: update(phoneNumber)
-        case false: creat(phoneNumber)
+        switch editingStyle {
+        case .creat:
+            creat(phoneNumber)
+        case .update:
+            update(phoneNumber)
         }
     }
     
     // 입력 데이터를 PhoneNumber로 반환
     private func currentPhoneNumber() -> PhoneNumber? {
-        guard isSet,
-              let name = nameTextView.text,
+        guard let name = nameTextView.text,
               let number = phoneNumberTextView.text,
               let imageURL = imageURL else { return nil }
         
-        let id = data?.id ?? UUID()
-        let numberStr = MobilePhoneNumber(number).form()
+        let id = phoneNumber?.id ?? UUID()
+        let numberStr = PhoneNumberFormatter(number).form()
         
         return PhoneNumber(id: id,
                            imageURL: imageURL,
@@ -220,16 +259,17 @@ extension PhoneBookViewController {
                            number: numberStr)
     }
     
-    
+    // phoneBookManager를 통해 CoreData에 데이터 저장
     private func creat(_ phoneNumber: PhoneNumber) {
         do {
-            self.data = phoneNumber
+            self.phoneNumber = phoneNumber
             try phoneBookManager.creat(phoneNumber)
         } catch {
             presentErrorAlert("creat failed")
         }
     }
     
+    // phoneBookManager를 통해 CoreData의 데이터 수정
     private func update(_ phoneNumber: PhoneNumber) {
         do {
             try phoneBookManager.update(phoneNumber)
@@ -238,62 +278,28 @@ extension PhoneBookViewController {
         }
     }
     
-    func setData(_ phoneNumber: PhoneNumber) {
-        self.data = phoneNumber
-        
-        setPokeImage(phoneNumber.imageURL)
-        nameTextView.text = phoneNumber.name
-        phoneNumberTextView.text = phoneNumber.number
-    }
-    
-    private func updateTitleView(_ name: String) {
-        guard let titleLabelView = navigationItem.titleView as? UILabel else {
-            return
-        }
-        titleLabelView.text = name
-    }
-    
 }
 
 
-//TODO: URLSession or Alamofire 로 API 통신
+//MARK: - 이미지 로드 (Kingfisher 사용)
 extension PhoneBookViewController {
     
-    //URL 저장 및 pokeImageView 업데이트
-    private func setPokeImage(_ imageURL: URL) {
-        self.imageURL = imageURL
-        pokeImageView.kf.setImage(with: imageURL)
+    // 랜덤 이미지 생성 버튼 액션
+    @objc private func randomButtonTapped() {
+        guard let imageURL = PokeData.randomURL() else { return }
+        configurePokeImage(imageURL)
     }
     
     //데이터가 없을 경우 메타몽 설정
     private func defaultPokeImage() {
-        guard let imageURL = PokeData(from: 132).pngURL else { return }
-        setPokeImage(imageURL)
+        guard let imageURL = PokeData.dafaultURL() else { return }
+        configurePokeImage(imageURL)
     }
     
-    //TODO: URLSession or Alamofire 로 API 통신
-    @objc private func randomButtonTapped() {
-        guard let imageURL = PokeData.random().pngURL else { return }
-        setPokeImage(imageURL)
+    //URL 저장 및 pokeImageView 업데이트
+    private func configurePokeImage(_ imageURL: URL) {
+        self.imageURL = imageURL
+        pokeImageView.kf.setImage(with: imageURL)
     }
     
-    // 재사용 텍스트 뷰 (이름, 번호)
-    private func configureTextView(_ textView: UITextView) {
-        textView.textContentType = .telephoneNumber
-        textView.font = .systemFont(ofSize: 17, weight: .regular)
-        textView.textColor = .black
-        textView.text = nil
-        
-        textView.layer.borderColor = UIColor.lightGray.cgColor
-        textView.layer.borderWidth = 1
-        textView.layer.cornerRadius = 8
-        
-        textView.isScrollEnabled = false
-        textView.isEditable = true
-    }
-    
-}
-
-#Preview {
-    PhoneBookViewController()
 }

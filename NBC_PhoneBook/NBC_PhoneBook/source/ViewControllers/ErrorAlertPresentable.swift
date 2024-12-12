@@ -7,6 +7,7 @@
 
 import UIKit
 
+/// 에러 메세지 알럿 표시 지원
 protocol ErrorAlertPresentable: UIViewController {
     
 }

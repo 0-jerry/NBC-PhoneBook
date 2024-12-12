@@ -11,37 +11,50 @@ import CoreData
 
 /// 메인 화면 ViewController
 final class MainViewController: UIViewController, ErrorAlertPresentable {
-    
-    private var datas: [PhoneNumber] = []
-    
+        
     private let phoneBookManager = PhoneBookManager.shared
     
-    private let tableView: UITableView = {
+    private var datas: [PhoneNumber] = []
+
+    private lazy var phoneBookTableView: UITableView = {
         let tableView = UITableView()
         tableView.backgroundColor = .white
+        
+        tableView.register(PhoneNumberTableViewCell.self,
+                                forCellReuseIdentifier: PhoneNumberTableViewCell.id)
+        
+        tableView.dataSource = self
+        tableView.delegate = self
         
         return tableView
     }()
     
+    //뷰를 메모리에 불러온 뒤 실행
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         self.view.backgroundColor = .white
         
-        configureData()
-        configureNavigationController()
-        configureTableView()
+        setUpNavigationController()
+        setUpPhoneBookTableView()
+//        configurePhoneBookTableView()
     }
     
+    //뷰가 화면에 나타날 때 실행
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        configureData()
+        loadDatas()
     }
     
     //데이터 설정 메서드
-    private func configureData() {
-        guard let datas = phoneBookManager.read() else { return }
-        self.datas = datas
-        self.tableView.reloadData()
+    private func loadDatas() {
+        do {
+            let datas = try phoneBookManager.read()
+            self.datas = datas
+            self.phoneBookTableView.reloadData()
+        } catch {
+            presentErrorAlert("read failed")
+        }
     }
     
 }
@@ -51,12 +64,10 @@ final class MainViewController: UIViewController, ErrorAlertPresentable {
 extension MainViewController {
     
     // 네비게이션 컨트롤러 설정 메서드
-    private func configureNavigationController() {
-        guard let navigationController = self.navigationController else { return }
+    private func setUpNavigationController() {
         
         let titleFont = UIFont.systemFont(ofSize: 23, weight: .bold)
         let itemFont = UIFont.systemFont(ofSize: 21, weight: .semibold)
-        navigationController.navigationBar.titleTextAttributes = [.font: titleFont]
         
         let titleLabel = UILabel()
         titleLabel.text = "친구 목록"
@@ -66,13 +77,14 @@ extension MainViewController {
                                         style: .plain,
                                         target: self,
                                         action: #selector(pushPhoneBookViewController))
+        
         addButton.setTitleTextAttributes([.font: itemFont], for: .normal)
         
         self.navigationItem.titleView = titleLabel
         self.navigationItem.setRightBarButton(addButton, animated: false)
     }
     
-    // PhoneBookViewController 푸쉬
+    // PhoneBookViewController 푸쉬 액션
     @objc private func pushPhoneBookViewController() {
         guard let navigationController = self.navigationController else { return }
         let phoneBookViewController = makePhoneBookViewController(nil)
@@ -93,25 +105,14 @@ extension MainViewController {
 
 extension MainViewController: UITableViewDataSource, UITableViewDelegate  {
     
-    // TableView 설정
-    private func configureTableView() {
-        self.view.addSubview(tableView)
-        
-        tableView.dataSource = self
-        tableView.delegate = self
-        
-        tableView.snp.makeConstraints {
+    // TableView 레이아웃 설정
+    private func setUpPhoneBookTableView() {
+        self.view.addSubview(phoneBookTableView)
+
+        phoneBookTableView.snp.makeConstraints {
             $0.bottom.leading.trailing.equalToSuperview().inset(20)
             $0.top.equalTo(self.view.safeAreaLayoutGuide).inset(30)
         }
-        
-        registerCell()
-    }
-    
-    // TableViewCell 등록
-    private func registerCell() {
-        self.tableView.register(PhoneNumberCell.self,
-                                forCellReuseIdentifier: PhoneNumberCell.id)
     }
     
     // 셀 수
@@ -119,27 +120,27 @@ extension MainViewController: UITableViewDataSource, UITableViewDelegate  {
         return datas.count
     }
     
-    // 셀 dequeue
+    // 테이블 뷰에 셀 반환
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let phoneNumberCell = tableView.dequeueReusableCell(withIdentifier: PhoneNumberCell.id,
-                                                                  for: indexPath) as? PhoneNumberCell else {
+        guard let phoneNumberCell = tableView.dequeueReusableCell(withIdentifier: PhoneNumberTableViewCell.id,
+                                                                  for: indexPath) as? PhoneNumberTableViewCell else {
             return UITableViewCell()
         }
         
         let phoneNumber = datas[indexPath.row]
-        phoneNumberCell.setData(phoneNumber)
+        phoneNumberCell.configureData(phoneNumber)
         
         return phoneNumberCell
     }
     
-    // TableViewCell 사이즈
+    // 셀 높이 설정
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         80
     }
     
     // 셀 선택시 실행
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let phoneNumberCell = tableView.cellForRow(at: indexPath) as? PhoneNumberCell,
+        guard let phoneNumberCell = tableView.cellForRow(at: indexPath) as? PhoneNumberTableViewCell,
               let data = phoneNumberCell.data,
               let navigationController = self.navigationController else { return }
         
@@ -158,7 +159,7 @@ extension MainViewController: UITableViewDataSource, UITableViewDelegate  {
             } catch {
                 presentErrorAlert("delete failed")
             }
-            configureData()
+            loadDatas()
         }
     }
     
